@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"sync"
 	"time"
+
+	"github.com/jszwec/csvutil"
 )
 
 const iKnowAboutPanic = true
@@ -14,6 +16,7 @@ const iKnowAboutPanic = true
 func main() {
 	selectSendOnClosed()
 	goroutineSinglePanic()
+	csvSandbox()
 }
 
 // shows two usages
@@ -107,5 +110,38 @@ loop:
 			fmt.Printf("\r%c", runes[i%len(runes)])
 			time.Sleep(time.Millisecond * 50)
 		}
+	}
+}
+
+func csvSandbox() {
+	var csvInput = []byte(`
+ID,name,age,CreatedAt
+1,jacek,26,2012-04-01T15:00:00Z
+2,john,,0001-01-01T00:00:00Z`)
+
+	type UserID int64
+	type User struct {
+		ID   UserID
+		Name string `csv:"name"`
+		Age  int    `csv:"age,omitempty"`
+		// Age       int `csv:"age"`
+		CreatedAt time.Time
+	}
+
+	var users []User
+	if err := csvutil.Unmarshal(csvInput, &users); err != nil {
+		fmt.Println("error:", err)
+	}
+
+	for _, u := range users {
+		fmt.Printf("%+v\n", u)
+	}
+
+	type UnitID int64
+
+	var user1 UserID = 1
+	var unit1 UnitID = 1
+	if user1 == UserID(unit1) {
+		fmt.Printf("%d %d\n", user1, unit1)
 	}
 }
