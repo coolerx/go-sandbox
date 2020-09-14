@@ -4,7 +4,9 @@
 package main
 
 import (
+	"errors"
 	"fmt"
+	"reflect"
 	"sync"
 	"time"
 
@@ -17,6 +19,8 @@ func main() {
 	selectSendOnClosed()
 	goroutineSinglePanic()
 	csvSandbox()
+	deferReturn()
+	mimicOverride()
 }
 
 // shows two usages
@@ -28,7 +32,7 @@ func selectSendOnClosed() {
 		case nil:
 			fmt.Println("selectSendOnClosed ok")
 		default:
-			fmt.Printf("selectSendOnClosed no: panic: %v\n", p)
+			fmt.Printf("selectSendOnClosed no: panic: %T %v\n", p, p)
 		}
 	}()
 
@@ -144,4 +148,48 @@ ID,name,age,CreatedAt
 	if user1 == UserID(unit1) {
 		fmt.Printf("%d %d\n", user1, unit1)
 	}
+}
+
+func deferReturn() {
+	finalErr := func() (err error) {
+		defer func() {
+			err = errors.New("deferred error")
+		}()
+		err = errors.New("original error")
+		return
+	}()
+	fmt.Println("err:", finalErr)
+}
+
+type talker interface {
+	talk() string
+	talk2() string
+}
+
+type defaultTalker struct{}
+
+func (t defaultTalker) talk() string {
+	return "default"
+}
+
+func (t defaultTalker) talk2() string {
+	return "default2"
+}
+
+type basicTalker struct{ defaultTalker }
+
+type overrideTalker struct{ defaultTalker }
+
+func (t overrideTalker) talk() string {
+	return "override"
+}
+
+func mimicOverride() {
+	bt := talker(basicTalker{})
+	ot := talker(overrideTalker{})
+
+	fmt.Println(reflect.TypeOf(bt), bt.talk())
+	fmt.Println(reflect.TypeOf(ot), ot.talk())
+	fmt.Println(reflect.TypeOf(bt), bt.talk2())
+	fmt.Println(reflect.TypeOf(ot), ot.talk2())
 }
