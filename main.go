@@ -21,6 +21,7 @@ func main() {
 	csvSandbox()
 	deferReturn()
 	mimicOverride()
+	timeSandbox()
 }
 
 // shows two usages
@@ -192,4 +193,15 @@ func mimicOverride() {
 	fmt.Println(reflect.TypeOf(ot), ot.talk())
 	fmt.Println(reflect.TypeOf(bt), bt.talk2())
 	fmt.Println(reflect.TypeOf(ot), ot.talk2())
+}
+
+func timeSandbox() {
+	now := time.Now()
+
+	fmt.Printf("now: %v\n", now)
+	fmt.Println(now.Format(time.RFC3339))
+	fmt.Println(now.Format(time.RFC850))
+
+	fmt.Printf("unix now: %v\n", now.Unix())
+	fmt.Printf("unix utc now: %v\n", now.UTC().Unix())
 }
